@@ -31,7 +31,6 @@ jobs:
         with:
           bazelisk-cache: true
           disk-cache: ${{ github.workflow }}
-          repository-cache: true
       - name: Run the tests
         run: bazel test //...
       - name: Analyze Ahab's own build
@@ -71,7 +70,6 @@ jobs:
         with:
           bazelisk-cache: true
           disk-cache: ${{ github.workflow }}
-          repository-cache: true
           cache-save: false
       - name: Run the fishery
         run: python3 fishery/fishery.py ci --shard=${{ matrix.shard }}/${{ strategy.job-total }}
