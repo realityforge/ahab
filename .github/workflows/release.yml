@@ -43,7 +43,6 @@ jobs:
         with:
           bazelisk-cache: true
           disk-cache: ${{ github.workflow }}-${{ matrix.platform }}
-          repository-cache: true
       - name: Build the binary
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
