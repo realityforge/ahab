@@ -1,0 +1,36 @@
+name: Generate Bazel upgrade expectation
+on:
+  push:
+    branches: [upgrade-bazel-9.3.0]
+permissions:
+  contents: read
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+    env:
+      USE_BAZEL_VERSION: 9.3.0
+    steps:
+      - uses: actions/checkout@v7
+      - name: Make room on the runner
+        run: .github/workflows/make_room.sh
+      - name: Set up Bazelisk
+        run: |
+          mkdir -p "$RUNNER_TEMP/bazelisk"
+          curl -fsSL https://github.com/bazelbuild/bazelisk/releases/download/v1.29.0/bazelisk-linux-amd64 -o "$RUNNER_TEMP/bazelisk/bazel"
+          printf '%s  %s\n' '5a408715e932c0250d28bd84555f12edbf70117de42f9181691c736eacc4a992' "$RUNNER_TEMP/bazelisk/bazel" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/bazelisk/bazel"
+          echo "$RUNNER_TEMP/bazelisk" >> "$GITHUB_PATH"
+      - name: Generate and verify the rules_apple expectation
+        run: |
+          bazel --version
+          python3 fishery/fishery.py setup rules_apple
+          python3 fishery/fishery.py update rules_apple
+          python3 fishery/fishery.py check rules_apple
+      - name: Clean the fishery target
+        if: ${{ always() }}
+        run: python3 fishery/fishery.py clean rules_apple
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bazel-9.3.0-rules-apple-expectation
+          path: fishery/rules_apple/expectation.json
+          if-no-files-found: error
